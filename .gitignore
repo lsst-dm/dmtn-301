@@ -8,3 +8,8 @@
 *.xdv
 *.dvi
 *.pdf
+
+# Ignore automatically generated tex files
+authors.tex
+meta.tex
+acronyms.tex
