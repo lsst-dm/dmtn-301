@@ -1,0 +1,79 @@
+
+\documentclass[11pt,twoside]{article}
+
+% Do NOT use ANY packages other than asp2014.
+\usepackage{asp2014}
+%if you add acronyms - but asp say no other imports
+%\usepackage{longtable}
+
+\aspSuppressVolSlug
+\resetcounters
+
+% References must all use BibTeX entries in a .bibfile.
+% References must be cited in the text using \citet{} or \citep{}.
+% Do not use \cite{}.
+% See ManuscriptInstructions.pdf for more details
+\bibliographystyle{asp2014}
+\def\procspie{Proc.\ SPIE} % Proceedings of the SPIE
+
+% Package imports go here.
+
+% Local commands go here.
+
+% See ASPmanual2010.pdf 2.1.4  and ManuscriptInstructions.pdf for more details
+%\markboth{auth}{short title}
+\markboth{McCormick et al.}{Using Felis to Represent the Semantics and Metadata of Astronomical Data Catalogs}
+
+\begin{document}
+\input{authors}
+\date{\today}
+\title{Using Felis to Represent the Semantics and Metadata of Astronomical Data Catalogs}
+
+% This can write metadata into the PDF.
+% Update keywords and author information as necessary.
+\hypersetup{
+    pdftitle={Using Felis to Represent the Semantics and Metadata of Astronomical Data Catalogs},
+    pdfauthor={mccormickj},
+    pdfkeywords={}
+}
+
+
+\begin{abstract}
+    Data catalogs are a fundamental part of modern astronomical research, allowing scientists to view, search, and filter data according to their requirements. Tabular data models described by SQL Data Definition Language (DDL) are a common way to represent such catalogs. However, DDL does not provide a way to describe the semantics of the data, such as the meaning of a data column, units of measurement, or the relationships between columns. The International Virtual Observatory Alliance (IVOA) has developed several standards in this area, including VOTable and Table Access Protocol (TAP), which are widely used within astronomy for representing such information.
+
+    The Data Engineering group of the Vera C. Rubin Observatory has developed a data description language and toolset, Felis, for defining the semantics of its Science Data Model schemas, which represent its public-facing data catalogs. Felis uses a rich Pydantic data model for describing and validating catalog metadata, represented as a human-readable and -editable YAML format. Felis provides a Python library and application for working with these data models. The metadata is used to populate the TAP\_SCHEMA tables for the IVOA TAP services that power the table UI of the Rubin Science Platform (RSP). The toolset is also being used to assist in data migrations and will be utilized in testing the conformance of LSST data products to the data model. Felis's current capabilities will be discussed, as well as recent developments and future plans.
+\end{abstract}
+
+% These lines show examples of subject index entries. At this stage these have to commented
+% out, and need to be on separate lines. Eventually, they will be automatically uncommented
+% and used to generate entries in the Subject Index at the end of the Proceedings volume.
+%\ssindex{Virtual Observatory (VO)!standards!Simple Image Access}
+%\ssindex{observatories!ground-based!Rubin}
+
+% These lines show examples of ASCL index entries. At this stage these have to commented
+% out, and need to be on separate lines. Eventually, they will be automatically uncommented
+% and used to generate entries in the ASCL Index at the end of the Proceedings volume.
+% The ascl.py command will scan your paper on possible code names.
+% Don't leave these in! - replace them with ones relevant to your paper.
+%ooindex{FOOBAR, ascl:1101.010}
+
+\section{Introduction}
+
+Tabular data catalogs are a fundamental part of modern astronomical research, providing a way for scientists to query, filter, analyze, and visualize data.
+These catalogs are often stored in a variety of formats, including FITS tables, CSV files, and SQL databases.
+Within the Rubin Observatory, Relationahip Database Management (RDBMS) technologies are used to store and manage data.
+These systems rely on Data Definition Language (DDL) to define the structure of the data.
+These DDL statements define the tables, columns, and constraints that make up the schema for a particular target database such as PostgreSQL, MySQL, or SQLite.
+Missing from these DDL statements is the ability to define the metadata that describes the data, including units of measurement, relationships between columns, IVOA Unified Content Descriptors (UCDs), and table or column ordering.
+This metadata is critical for understanding and processing the data, but a typical database system does not provide a standard way to store and access this information.
+
+In order to rectify this situation, the Data Management team at the Rubin Observatory has developed a programming language agnostic, human-readable, and machine-readable format for defining the metadata associated with a particular database schema.
+The Felis tool reads this format, defined in a YAML file, and generates the DDL statements for a target database.
+Felis uses the Pydantic library to strictly validate the YAML file, ensuring that the schema is correctly defined.
+The schema definition can also be used to generate a TAP\_SCHEMA database, which may be accessed through a Table Access Protocol (TAP) service endpoint \citep{2019ivoa.spec.0927D}.
+
+\acknowledgments This material or work is supported in part by the National Science Foundation through Cooperative Agreement AST-1258333 and Cooperative Support Agreement AST1836783 managed by the Association of Universities for Research in Astronomy (AURA), and the Department of Energy under Contract No.\ DE-AC02-76SF00515 with the SLAC National Accelerator Laboratory managed by Stanford University.
+
+\bibliography{C702}
+
+\end{document}

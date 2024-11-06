@@ -1,7 +1,0 @@
-
-\begin{abstract}
-Data catalogs are a fundamental part of modern astronomical research, allowing scientists to view, search, and filter data according to their requirements. Tabular data models described by SQL Data Definition Language (DDL) are a common way to represent such catalogs. However, DDL does not provide a way to describe the semantics of the data, such as the meaning of a data column, units of measurement, or the relationships between columns. The International Virtual Observatory Alliance (IVOA) has developed several standards in this area, including VOTable and Table Access Protocol (TAP), which are widely used within astronomy for representing such information.
-
-The Data Engineering group of the Vera C. Rubin Observatory has developed a data description language and toolset, Felis, for defining the semantics of its Science Data Model schemas, which represent its public-facing data catalogs. Felis uses a rich Pydantic data model for describing and validating catalog metadata, represented as a human-readable and -editable YAML format. Felis provides a Python library and application for working with these data models. The metadata is used to populate the TAP\_SCHEMA tables for the IVOA TAP services that power the table UI of the Rubin Science Platform (RSP). The toolset is also being used to assist in data migrations and will be utilized in testing the conformance of LSST data products to the data model. Felis's current capabilities will be discussed, as well as recent developments and future plans.
-\end{abstract}
-
