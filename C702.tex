@@ -40,7 +40,7 @@
 % Data catalogs are a fundamental part of modern astronomical research, allowing scientists to view, search, and filter data according to their requirements. Tabular data models described by SQL Data Definition Language (DDL) are a common way to represent such catalogs. However, DDL does not provide a way to describe the semantics of the data, such as the meaning of a data column, units of measurement, or the relationships between columns. The International Virtual Observatory Alliance (IVOA) has developed several standards in this area, including VOTable and Table Access Protocol (TAP), which are widely used within astronomy for representing such information.
 
 \begin{abstract}
-    The Data Engineering group of the Vera C. Rubin Observatory has developed a data description language and toolset, Felis, for defining the semantics and metadata of its Science Data Model schemas, which represent its public-facing data catalogs. Felis uses a rich Pydantic data model for describing and validating catalog metadata, represented as a human-readable and -editable YAML format. Felis provides a Python library and application for working with these data models. The metadata is used to populate the TAP\_SCHEMA tables for the IVOA TAP services that power the table UI of the Rubin Science Platform (RSP). Felis's current capabilities will be discussed, as well as recent developments and future plans.
+    The Data Engineering group of the Vera C. Rubin Observatory has developed a data description language and toolset, Felis, for defining the semantics and metadata of its public-facing data catalogs. Felis uses a rich Pydantic data model for describing and validating catalog metadata, expressed as a human-readable and editable YAML format. Felis also provides a Python library and command line interface for working with these data models. The metadata is used to populate the TAP\_SCHEMA tables for the IVOA TAP services utilized by the Rubin Science Platform (RSP). Felis's current capabilities will be discussed along with some future plans.
 \end{abstract}
 
 % These lines show examples of subject index entries. At this stage these have to commented
@@ -58,95 +58,101 @@
 
 \section{Introduction}
 
-Tabular data catalogs are a fundamental part of modern astronomical research, providing a way for scientists to query, filter, analyze, and visualize data.
-Oftentimes, relational databases are used as a primary mechanism for storing and managing this data.
-These systems rely on Data Definition Language (DDL) to define the structure of the data.
-Missing is the ability to define and provide the metadata that describes the data, including, for example, units of measurement or relationships between columns.
-This metadata is critical for understanding and processing the data in a scientific context.
+Tabular data catalogs are a fundamental part of modern astronomical research, and relational databases are a commonly used technology for providing access to them, typically via SQL queries.
+Such systems rely on Data Definition Language (DDL) for defining the structure, or schema of the catalog, but DDL lacks the ability to define catalog metadata such as units of measurement or relationships between columns.
+This metadata is critical for understanding and processing the data, as well as presenting it to users in a meaningful way.
 
-The Data Management team at the Vera C.\ Rubin Observatory \citep{2019ApJ...873..111I} has developed a data format for defining the metadata associated with a particular schema.
-Felis\footnote{\url{https://github.com/lsst/felis}} reads this data format and uses the Python Pydantic library for validation, ensuring that the schema is correctly defined.
-The loaded schema definition can then be used within a Python environment to emit DDL statements for a target database and generate TAP\_SCHEMA data, which may be accessed through a Table Access Protocol (TAP) service endpoint \citep{2019ivoa.spec.0927D}.
-The Felis toolkit is also used for a variety of other tasks, including generating documentation, validating schema changes in CI, and generating data migration scripts.
+The Data Management team at the Vera C.\ Rubin Observatory \citep{2019ApJ...873..111I} has developed a data format for defining the metadata for a particular data catalog or schema.
+Felis\footnote{\url{https://github.com/lsst/felis}} reads and validates this format using the Pydantic Python library\footnote{\url{https://pydantic.dev}}.
+The validated model is used to generate DDL statements or populate a TAP\_SCHEMA database, which can then be accessed through a Table Access Protocol (TAP) service endpoint \citep{2019ivoa.spec.0927D}.
+Felis may also be used for a variety of additional tasks, such as generating documentation or validating schema updates within continuous integration (CI) processes.
 
 \section{Schema Data Model}
 
 \articlefigure{C702_f1.eps}{fig:schema}{ERD diagram of the schema data model.}
 
-A particular schema is described by YAML file containing definitions of its tables, columns, and metadata.
-The schema is defined in a shallow hierarchical structure, with each schema containing a list of tables.
-Each table has a set of columns and may optionally define constraints and indexes.
-Tables and columns may have a TAP index field, which is used to recommend ordering for clients.
+All objects in the schema have a set of common attributes, including a name, identifier, and description.
+The name attribute is required and corresponds to the name of the object in the target database.
+The description is an optional, human-readable description of the object.
+The identifier provides a way to uniquely identify the object within the schema and is primarily used for object referencing.
+Identifiers may be generated automatically or provided explicitly by the user.
 
-All objects in the schema have a name, used to generate names of database objects in DDL, a description field, which provides a human-readable description of the object, and an id field, which is used to uniquely identify the object.
-The id may be generated automatically by Felis or provided by the user.
-
-A schema may have an optional version string used to track its changes over time.
+A version attribute indicates the version of the schema and can be used to track changes over time.
+In addition to the version string, lists of compatible and read-compatible versions can also be provided.
 Felis does not enforce any particular versioning scheme, but semantic versioning is recommended.
-Schemas may also define lists of compatible and read-compatible versions, which may be useful for clients that need to know which versions of the schema they can work with.
 
-Columns have a datatype, which is defined internally by Felis and maps to a target database type, as well as a number of additional attributes defining logical database properties, such as whether the column is nullable.
-Many optional properties may be defined for a column to define its semantics, including an IVOA unit, UCD, or xtype.
-A column can also be flagged as a TAP principal column, meaning that it can be used as a default in public presentations or query builders.
+A schema must define at least one table, and each table must include a list of one or more columns.
+Columns must have a \texttt{datatype} field and may include a number of optional properties which are used for a variety of purposes, including specifying semantics of the column, such as units, UCD, and xtype.
+These properties can also specify the column's behavior in a database, such as whether it is nullable.
+Both tables and columns may define a TAP index, typically used to recommend an ordering for clients.
 
 Constraints define rules that restrict column values in a table.
 Felis supports primary key, foreign key, and unique constraints.
-Each constraint defines the columns to which it applies, as well as the target table and columns for foreign key constraints.
+Each constraint defines the columns to which it applies, as well as the target primary key for a foreign key constraint.
 
-Indexes indicate that a column or set of columns should be indexed for faster query performance.
+Indexes indicate that a column or set of columns should be indexed in the database for faster query performance.
 Indexes are defined by a list of one or more columns.
-The indexes can be used as an indication to clients that they should consider using these columns in their queries for better performance.
+The indexes may be used as an indication to clients that they should consider using these columns in their queries for better performance.
 
-\section{Schema Validation}
+\section{Python Data Model}
 
-The YAML data defining the schema is validated using the Pydantic library, which ensures that the schema is correctly defined.
-The Felis data model is defined using a set of Python classes which inherit from Pydantic's BaseModel class.
-This allows for strict validation of the schema, ensuring that all required fields are present and that the data types are correct.
+\begin{description}
+    \item[Schema Validation]
+    The YAML data defining the schema is validated when loaded, ensuring that the schema is correctly defined.
+    The model comprises a set of Python classes which inherit from Pydantic's \texttt{BaseModel} class and correspond to the different types of schema objects.
+    The attributes of the classes are defined using Pydantic's \texttt{Field} class, which allows for specifying the data type, default value, and validation rules.
+    This allows for strict validation of the schema, ensuring that all required fields are present and that the data types are correct.
 
-Additionally, various "business rules" are defined and enforced using Python functions with special annotations indicating whether they will validate the raw data or the generated Python objects.
-These functions are run automatically during the validation process.
-An example of a business rule would be ensuring that table names are unique within a given schema.
-Validation errors are reported to the user with helpful error messages indicating what went wrong.
-
-\section{Python API}
+    Additionally, various "business rules" are defined and enforced using Python "validator" functions.
+    These functions run automatically as part of the validation process.
+    An example business rule might ensure that table names are unique within a given schema.
+    Any validation errors which occur will cause the validation process to fail, preventing the schema from being loaded, and an error message will be returned to the user.
+\end{description}
 
 \articlefigure{C702_f2.eps}{fig:python}{Example of using the Felis Python API.}
 
-Felis provides a Python API for working with schema data, an example of which is shown in Fig.\,\ref{fig:python}.
-The API allows for reading schema data, validating it, and generating DDL statements for a target database.
+\begin{description}
+    \item[Using the Python API]
+    Felis provides a Python API for working with schema data.
+    Fig.\,\ref{fig:python} shows a simple example of working with this API.
+    The basic functionality consists of a set of classes representing the schema objects (Schema, Table, Column, etc.).
+    Extension modules provide capabilities for generating DDL statements or loading the data into a TAP\_SCHEMA database.
+    Future extensions are planned to support additional functionality, such as converting tabular data to other formats or performing database migrations.
+\end{description}
 
-\section{Felis Data Types}
+\section{Database Integration}
 
-Felis defines its own system of data types which map to target database types.
-Columns are required to have a datatype field.
-Some commonly used Felis data types include boolean, int, float, char, string, timestamp, and text.
-These data types are used to generate the DDL statements for the target database.
-Additionally, data types are mapped to VOTable types, which are used to generate the TAP\_SCHEMA representation.
+\begin{description}
+    \item[Felis Data Types]
+    Felis defines its own system of data types, which are mapped to target database types.
+    Some commonly used Felis data types include \texttt{boolean}, \texttt{int}, \texttt{char}, and \texttt{string}.
+    For instance, the string datatype will generate a VARCHAR column in PostgreSQL and MySQL.
+    Additionally, these data types have corresponding VOTable types used for generating the TAP\_SCHEMA representation.
 
-\section{Database Support}
+\end{description}
 
-Felis supports generating DDL statements for the PostgreSQL, MySQL, and SQLite databases.
-The target database is defined by a runtime-configurable database engine URL.
-The database engine URL is used to determine the target database type and generate the appropriate DDL statements.
+\begin{description}
+    \item[DDL Generation]
+    Felis supports generating DDL statements for several different open source database engines, including MySQL and PostgreSQL.
+    Information about the target database is provided by a runtime-configurable database engine URL.
 
-\section{TAP\_SCHEMA Generation}
+    Felis may also populate a TAP\_SCHEMA database by generating a set of insert statements representing the schema data, which are then executed to populate the database.
 
-Felis can generate a TAP\_SCHEMA database, which can be accessed through a TAP service endpoint.
-The TAP\_SCHEMA database is generated by reading the schema definition and generating a set of insert statements which represent the schema data.
-These insert statements are then executed against the target database by creating a TAP\_SCHEMA database which can be accessed by clients.
+\end{description}
 
 \section{Felis in the Rubin Observatory}
 
-The Science Data Model (SDM) of the Rubin Observatory \citep[e.g.,][]{LSE-163} is defined using Felis.
-The SDM Schemas are a set of public-facing data catalogs which are used by the Rubin Science Platform (RSP) to provide access to the data.
-These files are managed in a Git repository and are versioned using Git tags.
-All changes to the schemas are validated in continuous integration workflows, ensuring that they are correctly defined.
+The Science Data Model (SDM) Schemas of the Rubin Observatory \citep[e.g.,][]{LSE-163} are defined using the Felis format.
+These represent a set of public-facing data catalogs used by the Rubin Science Platform (RSP) to provide access to the data.
+The files are managed in a Git repository and versioned as a set with Git tags.
+Changes to the schemas are validated in GitHub workflows, ensuring that they are correctly defined, with any errors flagged to the user.
 Rubin Observatory's SIAv2 service \citep{P920_adassxxxiv} uses Felis to define the SIAv2 data model and ensure that the resultant VOTable is conformant.
 
 \section{Future Work}
 
-The Felis library is under active development with additional features and improvements planned.
-In particular, support for writing tabular data to a variety of output formats is planned.
+Felis is under active development, with several new features planned.
+Converting tabular data to other formats, such as astropy Data Tables \footnote{\url{https://docs.astropy.org/en/stable/table}}, is one of these.
+Another planned feature is the generation data migration scripts for updating databases to new schema versions.
 
 \acknowledgments This material or work is supported in part by the National Science Foundation through Cooperative Agreement AST-1258333 and Cooperative Support Agreement AST1836783 managed by the Association of Universities for Research in Astronomy (AURA), and the Department of Energy under Contract No.\ DE-AC02-76SF00515 with the SLAC National Accelerator Laboratory managed by Stanford University.
 
