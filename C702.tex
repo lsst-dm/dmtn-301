@@ -109,12 +109,19 @@ The indexes may be used as an indication to clients that they should consider us
     Any validation errors which occur will cause the validation process to fail, preventing the schema from being loaded, and an error message will be returned to the user.
 \end{description}
 
-\articlefigure{C702_f2.eps}{fig:python}{Example of using the Felis Python API.}
-
 \begin{description}
     \item[Using the Python API]
     Felis provides a Python API for working with schema data.
-    Fig.\,\ref{fig:python} shows a simple example of working with this API.
+    Below is a simple example of working with this API.
+    \begin{verbatim}
+    from felis.datamodel import Schema
+    schema = Schema.from_uri("resource://...")
+
+    for table in schema.tables:
+        print(f"Table: {table.name}")
+        for column in table.columns:
+            print(f"  Column: {column.name}")
+    \end{verbatim}
     The basic functionality consists of a set of classes representing the schema objects (Schema, Table, Column, etc.).
     Extension modules provide capabilities for generating DDL statements or loading the data into a TAP\_SCHEMA database.
     Future extensions are planned to support additional functionality, such as converting tabular data to other formats or performing database migrations.
