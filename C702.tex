@@ -93,58 +93,46 @@ Indexes indicate that a column or set of columns should be indexed in the databa
 Indexes are defined by a list of one or more columns.
 The indexes may be used as an indication to clients that they should consider using these columns in their queries for better performance.
 
-\section{Python Data Model}
+\section{Schema Validation}
+The YAML data defining the schema is validated when loaded, ensuring that the schema is correctly defined.
+The model comprises a set of Python classes which inherit from Pydantic's \texttt{BaseModel} class and correspond to the different types of schema objects.
+The attributes of the classes are defined using Pydantic's \texttt{Field} class, which allows for specifying the data type, default value, and validation rules.
+This allows for strict validation of the schema, ensuring that all required fields are present and that the data types are correct.
 
-\begin{description}
-    \item[Schema Validation]
-    The YAML data defining the schema is validated when loaded, ensuring that the schema is correctly defined.
-    The model comprises a set of Python classes which inherit from Pydantic's \texttt{BaseModel} class and correspond to the different types of schema objects.
-    The attributes of the classes are defined using Pydantic's \texttt{Field} class, which allows for specifying the data type, default value, and validation rules.
-    This allows for strict validation of the schema, ensuring that all required fields are present and that the data types are correct.
+Additionally, various "business rules" are defined and enforced using Python "validator" functions.
+These functions run automatically as part of the validation process.
+An example business rule might ensure that table names are unique within a given schema.
+Any validation errors which occur will cause the validation process to fail, preventing the schema from being loaded, and an error message will be returned to the user.
 
-    Additionally, various "business rules" are defined and enforced using Python "validator" functions.
-    These functions run automatically as part of the validation process.
-    An example business rule might ensure that table names are unique within a given schema.
-    Any validation errors which occur will cause the validation process to fail, preventing the schema from being loaded, and an error message will be returned to the user.
-\end{description}
+\section{Using the Python API}
 
-\begin{description}
-    \item[Using the Python API]
-    Felis provides a Python API for working with schema data.
-    Below is a simple example of working with this API.
-    \begin{verbatim}
-    from felis.datamodel import Schema
-    schema = Schema.from_uri("resource://...")
+Felis provides a Python API for working with schema data.
+Below is a simple example of working with this API.
+\begin{verbatim}
+from felis.datamodel import Schema
+schema = Schema.from_uri("resource://...")
 
-    for table in schema.tables:
-        print(f"Table: {table.name}")
-        for column in table.columns:
-            print(f"  Column: {column.name}")
-    \end{verbatim}
-    The basic functionality consists of a set of classes representing the schema objects (Schema, Table, Column, etc.).
-    Extension modules provide capabilities for generating DDL statements or loading the data into a TAP\_SCHEMA database.
-    Future extensions are planned to support additional functionality, such as converting tabular data to other formats or performing database migrations.
-\end{description}
+for table in schema.tables:
+    print(f"Table: {table.name}")
+    for column in table.columns:
+        print(f"  Column: {column.name}")
+\end{verbatim}
+The basic functionality consists of a set of classes representing the schema objects (Schema, Table, Column, etc.).
+Extension modules provide capabilities for generating DDL statements or loading the data into a TAP\_SCHEMA database.
+Future extensions are planned to support additional functionality, such as converting tabular data to other formats or performing database migrations.
 
-\section{Database Integration}
+\section{Felis Data Types}
 
-\begin{description}
-    \item[Felis Data Types]
-    Felis defines its own system of data types, which are mapped to target database types.
-    Some commonly used Felis data types include \texttt{boolean}, \texttt{int}, \texttt{char}, and \texttt{string}.
-    For instance, the string datatype will generate a VARCHAR column in PostgreSQL and MySQL.
-    Additionally, these data types have corresponding VOTable types used for generating the TAP\_SCHEMA representation.
+Felis defines its own system of data types, which are mapped to target database types.
+Some commonly used Felis data types include \texttt{boolean}, \texttt{int}, \texttt{char}, and \texttt{string}.
+For instance, the string datatype will generate a VARCHAR column in PostgreSQL and MySQL.
+Additionally, these data types have corresponding VOTable types used for generating the TAP\_SCHEMA representation.
 
-\end{description}
+section{DDL Generation}
+Felis supports generating DDL statements for several different open source database engines, including MySQL and PostgreSQL.
+Information about the target database is provided by a runtime-configurable database engine URL.
 
-\begin{description}
-    \item[DDL Generation]
-    Felis supports generating DDL statements for several different open source database engines, including MySQL and PostgreSQL.
-    Information about the target database is provided by a runtime-configurable database engine URL.
-
-    Felis may also populate a TAP\_SCHEMA database by generating a set of insert statements representing the schema data, which are then executed to populate the database.
-
-\end{description}
+Felis may also populate a TAP\_SCHEMA database by generating a set of insert statements representing the schema data, which are then executed to populate the database.
 
 \section{Felis in the Rubin Observatory}
 
