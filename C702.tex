@@ -117,7 +117,7 @@ for table in schema.tables:
     for column in table.columns:
         print(f"  Column: {column.name}")
 \end{verbatim}
-The basic functionality consists of a set of classes representing the schema objects (Schema, Table, Column, etc.).
+The basic functionality consists of a set of classes representing the schema objects (\texttt{Schema}, \texttt{Table}, \texttt{Column}, etc.).
 Extension modules provide capabilities for generating DDL statements or loading the data into a TAP\_SCHEMA database.
 Future extensions are planned to support additional functionality, such as converting tabular data to other formats or performing database migrations.
 
