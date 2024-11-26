@@ -81,7 +81,7 @@ In addition to the version string, lists of compatible and read-compatible versi
 Felis does not enforce any particular versioning scheme, but semantic versioning is recommended.
 
 A schema must define at least one table, and each table must include a list of one or more columns.
-Columns must have a \texttt{datatype} field and may include a number of optional properties which are used for a variety of purposes, including specifying semantics of the column, such as units or an IVOA Unified Content Descriptors (UCD) \footnote{\url{https://ivoa.net/documents/UCD1+}} value.
+Columns must have a \texttt{datatype} field and may include a number of optional properties which are used for a variety of purposes, including specifying semantics of the column, such as units or an IVOA Unified Content Descriptors (UCD) value \citep{cecconi2023ucd1plus}.
 These properties can also specify the column's behavior in a database, such as whether it is nullable.
 Both tables and columns may define a TAP index, typically used to recommend an ordering for clients.
 
