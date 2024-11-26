@@ -13,15 +13,12 @@ endif
 
 export TEXMFHOME ?= lsst-texmf/texmf
 
-#asp tex is a bit odd so latexml fails ..
+#asp tex is a bit odd so latexmk fails ..
 $(DOCNAME).pdf: $(tex) meta.tex C702.bib authors.tex acronyms.tex
-	latex $(DOCNAME)
+	pdflatex $(DOCNAME)
 	bibtex $(DOCNAME)
-	latex $(DOCNAME)
-	latex $(DOCNAME)
-	dvipdfm $(DOCNAME)
-	dvipdf $(DOCNAME)
-
+	pdflatex $(DOCNAME)
+	pdflatex $(DOCNAME)
 
 # Acronym tool allows for selection of acronyms based on tags - you may want more than DM
 acronyms.tex: $(tex) myacronyms.txt
