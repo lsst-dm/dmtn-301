@@ -1,6 +1,6 @@
 DOCTYPE = DMTN
 DOCNUMBER = 301
-DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
+DOCNAME = C702
 
 tex = $(filter-out $(wildcard *acronyms.tex) , $(wildcard *.tex))
 
@@ -13,22 +13,19 @@ endif
 
 export TEXMFHOME ?= lsst-texmf/texmf
 
-#asp tex is a bit odd so latexml fails .. 
-$(DOCNAME).pdf: $(tex) meta.tex local.bib authors.tex acronyms.tex
-	latex $(DOCNAME)
+#asp tex is a bit odd so latexmk fails ..
+$(DOCNAME).pdf: $(tex) meta.tex C702.bib authors.tex acronyms.tex
+	pdflatex $(DOCNAME)
 	bibtex $(DOCNAME)
-	latex $(DOCNAME)
-	latex $(DOCNAME)
-	dvipdfm $(DOCNAME)
-	dvipdf $(DOCNAME)
-
+	pdflatex $(DOCNAME)
+	pdflatex $(DOCNAME)
 
 # Acronym tool allows for selection of acronyms based on tags - you may want more than DM
 acronyms.tex: $(tex) myacronyms.txt
 	$(TEXMFHOME)/../bin/generateAcronyms.py -t "DM" $(tex)
 
 authors.tex:  authors.yaml
-	python3 $(TEXMFHOME)/../bin/db2authors.py --mode adass > authors.tex 
+	python3 $(TEXMFHOME)/../bin/db2authors.py --mode adass > authors.tex
 
 .PHONY: clean
 clean:
